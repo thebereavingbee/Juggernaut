@@ -31,12 +31,10 @@ ArrayList<Player> joined = new ArrayList<Player>();
 				if (sender instanceof Player) {
 					// player
 					Player player = (Player) sender;
-					if (args.length >= 1) {	
+					if (args.length >= 1) {								//checks if command has arguments
 						if (args[0].equalsIgnoreCase("start")) {
-							if (player.hasPermission("juggernaut.start")) {
-								//  start the game
-								if (joined.size() >= 1) {
-									//starts game if there are people in list
+							if (player.hasPermission("juggernaut.start")) {			//  start the game if player has permission juggernaut.start
+								if (joined.size() >= 1) {								//checks if the arraylist joined has at least one person
 									Player theJugg = randomPlayer((Player[])joined.toArray());
 									createJuggernaut(theJugg);
 								}
@@ -49,10 +47,8 @@ ArrayList<Player> joined = new ArrayList<Player>();
 							}
 						}
 						else if (args[0].equalsIgnoreCase("list")) {
-							if (player.hasPermission("juggernaut.list")) {
-								// /juggernaut list
-								// prints list of players in game
-								player.sendMessage("Current Players in game:");
+							if (player.hasPermission("juggernaut.list")) {		// /juggernaut list		
+								player.sendMessage("Current Players in game:");	// prints list of players in game
 								for (int i = 0; i < joined.size(); i++) {
 									player.sendMessage(joined.get(i).getName());
 								}
@@ -65,8 +61,7 @@ ArrayList<Player> joined = new ArrayList<Player>();
 							player.sendMessage("Usage: /juggernaut <list|start>");
 						}
 					}else {
-						if (player.hasPermission("juggernaut.join")) {
-							// add to game queue
+						if (player.hasPermission("juggernaut.join")) {	// add to game queue
 							joined.add(player);
 							player.sendMessage("You have been added to the game!");
 							player.sendMessage("Players ready: " + String.valueOf(joined.size()));
@@ -87,14 +82,13 @@ ArrayList<Player> joined = new ArrayList<Player>();
 			return players[n];
 			
 		}
-		public static void createJuggernaut(Player player) {	// Transform player into the Jugg
+		public static void createJuggernaut(Player player) {		// Transform player into the Jugg
 			player.sendMessage("You are thicc af");
 			
 			
 		}
-		public static void removeJuggernaut(Player player) {	// Transform player back into a normie
+		public static void removeJuggernaut(Player player) {		// Transform player back into a normie
 			player.sendMessage("You lose your chiseled jawline, normie");
 			
 		}
 }
-
