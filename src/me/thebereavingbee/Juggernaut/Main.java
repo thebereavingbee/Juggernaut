@@ -32,8 +32,12 @@ ArrayList<Player> joined = new ArrayList<Player>();
 					// player
 					Player player = (Player) sender;
 					if (args.length >= 1) {								//checks if command has arguments
-						if (args[0].equalsIgnoreCase("start")) {
-							if (player.hasPermission("juggernaut.start")) {			//  start the game if player has permission juggernaut.start
+						switch(args[0]) {
+						default:
+							player.sendMessage("Usage: /juggernaut <start|list>");
+							break;
+						case "start":
+							if (player.hasPermission("juggernaut.start")) {
 								if (joined.size() >= 1) {								//checks if the arraylist joined has at least one person
 									Player theJugg = randomPlayer((Player[])joined.toArray());
 									createJuggernaut(theJugg);
@@ -41,12 +45,11 @@ ArrayList<Player> joined = new ArrayList<Player>();
 								else {
 									player.sendMessage("Nobody is on the list to play! They can join with /juggernaut");
 								}
-							}
-							else {
+							} else {
 								player.sendMessage("You do not have permission to start the game!");
+								break;
 							}
-						}
-						else if (args[0].equalsIgnoreCase("list")) {
+						case "list":
 							if (player.hasPermission("juggernaut.list")) {		// /juggernaut list		
 								player.sendMessage("Current Players in game:");	// prints list of players in game
 								for (int i = 0; i < joined.size(); i++) {
@@ -57,10 +60,7 @@ ArrayList<Player> joined = new ArrayList<Player>();
 								player.sendMessage("You dont have permission to list players in game!");
 							}
 						}
-						else {
-							player.sendMessage("Usage: /juggernaut <list|start>");
-						}
-					}else {
+					}else {														//If command doesn't have arguments, assumes player wants to join the game
 						if (player.hasPermission("juggernaut.join")) {	// add to game queue
 							joined.add(player);
 							player.sendMessage("You have been added to the game!");
