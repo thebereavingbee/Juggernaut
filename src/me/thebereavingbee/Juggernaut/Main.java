@@ -7,18 +7,21 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Main extends JavaPlugin {
+public class Main extends JavaPlugin implements Listener{
 	
 ArrayList<Player> joined = new ArrayList<Player>();
 Player theJugg;
 
 		@Override
 		public void onEnable() {
-			//getServer().getPluginManager().registerEvents(new onDeath(), this);
-			
+			this.getServer().getPluginManager().registerEvents(this, this);
 		}
 		
 		@Override
@@ -37,19 +40,19 @@ Player theJugg;
 					if (args.length >= 1) {								//checks if command has arguments
 						switch(args[0]) {
 						default:
-							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|list>");
+							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|list|clear>");
 							break;
 						case "start":
 							if (player.hasPermission("juggernaut.start")) {
 								if (joined.size() >= 1) {											//checks if the arraylist joined has at least one person
 									//Player theJugg = randomPlayer((Player[])joined.toArray());
-									Random r = new Random();
-									int n = r.nextInt(joined.size());								//gets random int between 0 and total number of joined.
+									int n = createRandom(joined.size());							//gets random int between 0 and total number of joined.
 									Player theJugg = joined.get(n);									//turns that int into a player
 									//player.sendMessage("Random number: " + n);					//debug code
 									//player.sendMessage("joined.size() = " + joined.size());		//debug code
 									player.sendMessage(ChatColor.LIGHT_PURPLE + "Starting Game!");
 									createJuggernaut(theJugg);										//Makes them thicc
+									
 									break;
 								}
 								else {
@@ -100,11 +103,37 @@ Player theJugg;
 
 		public static void createJuggernaut(Player player) {		// Transform player into the Jugg
 			player.sendMessage("You are thicc af");
-			
+			player.setMetadata("The Jugg", new FixedMetadataValue(null, player));
 			
 		}
 		public static void removeJuggernaut(Player player) {		// Transform player back into a normie
 			player.sendMessage("You lose your chiseled jawline, normie");
 			
 		}
+		public static int createRandom(int max) {
+			Random r = new Random();
+			int n = r.nextInt(max);
+			return n;
+		}
+		@EventHandler
+		public void onDeath(PlayerDeathEvent e) {
+			if(e.getEntity().getKiller() == null) {
+				return;
+			}
+			Player player = e.getEntity();
+			Player killer = player.getKiller();
+			if (killer instanceof Player) {	
+					//player was killed by another player
+				player.removeMetadata("The Jugg", this);
+				
+			}
+		}
 }
+
+
+
+
+
+
+
+
