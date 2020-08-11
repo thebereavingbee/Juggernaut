@@ -1,15 +1,25 @@
 package me.thebereavingbee.Juggernaut;
 
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +28,7 @@ public class Main extends JavaPlugin implements Listener{
 	
 ArrayList<Player> joined = new ArrayList<Player>();
 Player theJugg;
+private Map<Player, String> jugMap = new HashMap<>();
 
 		@Override
 		public void onEnable() {
@@ -46,6 +57,7 @@ Player theJugg;
 							if (player.hasPermission("juggernaut.start")) {
 								if (joined.size() >= 1) {											//checks if the arraylist joined has at least one person
 									//Player theJugg = randomPlayer((Player[])joined.toArray());
+									
 									int n = createRandom(joined.size());							//gets random int between 0 and total number of joined.
 									Player theJugg = joined.get(n);									//turns that int into a player
 									//player.sendMessage("Random number: " + n);					//debug code
@@ -101,31 +113,127 @@ Player theJugg;
 			return false;
 		}
 
-		public static void createJuggernaut(Player player) {		// Transform player into the Jugg
+		public void createJuggernaut(Player player) {		// Transform player into the Jugg
+			jugMap.put(player, "The Jugg");
 			player.sendMessage("You are thicc af");
-			player.setMetadata("The Jugg", new FixedMetadataValue(null, player));
 			
+			PlayerInventory inventory = player.getInventory();
+			if (inventory.firstEmpty() == -1) {
+				//inventory is full
+				player.sendMessage(ChatColor.ITALIC + "You try to put on the jugg armor, but apparently it doesnt fit over you current armor!");
+			}
+			inventory.clear();
+			inventory.setArmorContents(juggItems());		//gives player the armor
 		}
+		
 		public static void removeJuggernaut(Player player) {		// Transform player back into a normie
 			player.sendMessage("You lose your chiseled jawline, normie");
-			
+			player.getInventory().clear();
 		}
+		
 		public static int createRandom(int max) {
 			Random r = new Random();
 			int n = r.nextInt(max);
 			return n;
 		}
+		
+		public ItemStack[] juggItems() {
+			List<ItemStack> items = new ArrayList<ItemStack>();
+			
+				// Boots lore and data
+			ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS);
+			ItemMeta meta = boots.getItemMeta();
+			
+			meta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Juggernaut Boots");
+			List<String> lore = new ArrayList<String>();
+			lore.add("");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "Some say the boots of a true"); 
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "Juggernaut never stop running.");
+			meta.setLore(lore);
+			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+			meta.setUnbreakable(true);
+			
+			boots.setItemMeta(meta);
+			
+			items.add(boots);
+			
+				// Pants lore and data
+			ItemStack pants = new ItemStack(Material.DIAMOND_LEGGINGS);
+			ItemMeta pantsMeta = pants.getItemMeta();
+			
+			pantsMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Juggernaut Pants");
+			lore.clear();
+			lore.add("");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "The pants of a Juggernaut are");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "slick to quickly evade danger.");
+			pantsMeta.setLore(lore);
+			pantsMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			pantsMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+			pantsMeta.setUnbreakable(true);
+			
+			pants.setItemMeta(pantsMeta);
+			
+			items.add(pants);
+			
+				// Chest Piece lore and data
+			ItemStack chest = new ItemStack(Material.DIAMOND_CHESTPLATE);
+			ItemMeta chestMeta = chest.getItemMeta();
+			
+			chestMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Juggernaut ChestPiece");
+			lore.clear();
+			lore.add("");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "Emblazened with the sigil of the Juggernauts!");
+			chestMeta.setLore(lore);
+			chestMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			chestMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+			chestMeta.setUnbreakable(true);
+			
+			chest.setItemMeta(chestMeta);
+			
+			items.add(chest);
+
+				// Helmet lore and data
+			ItemStack helm = new ItemStack(Material.DIAMOND_HELMET);
+			ItemMeta helmMeta = pants.getItemMeta();
+			
+			helmMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Juggernaut Helmet");
+			lore.clear();
+			lore.add("");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "The helmet of a Juggernaut is ");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "able to punch through any advisary.");
+			helmMeta.setLore(lore);
+			helmMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			helmMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+			helmMeta.setUnbreakable(true);
+			
+			helm.setItemMeta(helmMeta);
+			
+			items.add(helm);
+			
+			return items.toArray(new ItemStack[items.size()]);
+		}
+		
 		@EventHandler
 		public void onDeath(PlayerDeathEvent e) {
+			
+			
 			if(e.getEntity().getKiller() == null) {
-				return;
+				return;	//player was killed by mob/environment, skip changing the Jugg
 			}
-			Player player = e.getEntity();
+						
+			Player player = e.getEntity();		//player was killed by another player (killer)
 			Player killer = player.getKiller();
-			if (killer instanceof Player) {	
-					//player was killed by another player
-				player.removeMetadata("The Jugg", this);
-				
+			
+			if (jugMap.get(player) == "The Jugg") {
+				Bukkit.broadcastMessage(ChatColor.RED + "The Jugg has been killed by " + killer.getName() + "!");
+				jugMap.put(killer, "The Jugg");
+				createJuggernaut(killer);
+				jugMap.remove(player, "The Jugg");
+				removeJuggernaut(player);
+			}
+			else if (jugMap.get(killer) == "The Jugg") {
+				Bukkit.broadcastMessage(ChatColor.RED + "The Jugg Has Killed!");
 			}
 		}
 }
