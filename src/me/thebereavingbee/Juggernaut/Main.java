@@ -51,7 +51,7 @@ private Map<Player, String> jugMap = new HashMap<>();
 					if (args.length >= 1) {								//checks if command has arguments
 						switch(args[0]) {
 						default:
-							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|list|clear|attacker>");
+							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|stop|list|attacker>");
 							break;
 						case "start":
 							if (player.hasPermission("juggernaut.start")) {
@@ -81,6 +81,7 @@ private Map<Player, String> jugMap = new HashMap<>();
 									joined.get(i).sendMessage(ChatColor.LIGHT_PURPLE + "Thank you for playing!");
 								}
 								joined.clear();
+								break;
 							}
 							else {
 								player.sendMessage("You cant stop the game!");
