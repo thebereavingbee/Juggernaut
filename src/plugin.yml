@@ -1,7 +1,7 @@
 main: me.thebereavingbee.Juggernaut.Main
 name: Juggernaut
 version: 1.0
-description: This plugin is a self contained minigame.
+description: This plugin is a self contained minigame where players try to kill the Juggernaut.
 api-version: 1.13
 load: POSTWORLD
 author: thebereavingbee

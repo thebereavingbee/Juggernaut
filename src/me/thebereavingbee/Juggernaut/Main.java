@@ -1,6 +1,5 @@
 package me.thebereavingbee.Juggernaut;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,13 +15,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 public class Main extends JavaPlugin implements Listener{
 	
@@ -51,7 +51,7 @@ private Map<Player, String> jugMap = new HashMap<>();
 					if (args.length >= 1) {								//checks if command has arguments
 						switch(args[0]) {
 						default:
-							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|list|clear>");
+							player.sendMessage(ChatColor.RED + "Usage: /juggernaut <start|list|clear|attacker>");
 							break;
 						case "start":
 							if (player.hasPermission("juggernaut.start")) {
@@ -60,8 +60,6 @@ private Map<Player, String> jugMap = new HashMap<>();
 									
 									int n = createRandom(joined.size());							//gets random int between 0 and total number of joined.
 									Player theJugg = joined.get(n);									//turns that int into a player
-									//player.sendMessage("Random number: " + n);					//debug code
-									//player.sendMessage("joined.size() = " + joined.size());		//debug code
 									player.sendMessage(ChatColor.LIGHT_PURPLE + "Starting Game!");
 									createJuggernaut(theJugg);										//Makes them thicc
 									
@@ -75,6 +73,18 @@ private Map<Player, String> jugMap = new HashMap<>();
 								player.sendMessage(ChatColor.RED + "You do not have permission to start the game!");
 								break;
 							}
+						case "stop":
+							if (player.hasPermission("juggernaut.stop")) {
+								for (int i = 0; i < joined.size(); i++) {
+									joined.get(i).getInventory().clear();
+									joined.get(i).sendMessage(ChatColor.LIGHT_PURPLE + "The game has ended!");
+									joined.get(i).sendMessage(ChatColor.LIGHT_PURPLE + "Thank you for playing!");
+								}
+								joined.clear();
+							}
+							else {
+								player.sendMessage("You cant stop the game!");
+							}
 						case "list":
 							if (player.hasPermission("juggernaut.list")) {									// /juggernaut list		
 								player.sendMessage(ChatColor.LIGHT_PURPLE + "Current Players in game:");	// prints list of players in game
@@ -87,18 +97,26 @@ private Map<Player, String> jugMap = new HashMap<>();
 								player.sendMessage(ChatColor.RED + "You dont have permission to list players in game!");
 								break;
 							}
-						case "clear":
-							if (player.hasPermission("juggernaut.clear")) {
-								joined.clear();
+						case "attacker":												//pretty much only used for debugging
+							if (player.hasPermission("juggernaut.attackeritems")) {	
+								player.getInventory().clear();
+								player.getInventory().setContents(attackerItems());		//this just gives you the attacker items
 								break;
 							}
 							else {
-								player.sendMessage(ChatColor.RED + "You do not have permission to clear the list!");
+								player.sendMessage(ChatColor.RED + "You do not have permission to pull attacker items.");
 								break;
 							}
 						}
 					}else {												//If command doesn't have arguments, assumes player wants to join the game
 						if (player.hasPermission("juggernaut.join")) {	// add to game queue
+							for (int i = 0; i < joined.size(); i++) {
+								if (joined.get(i) == player) {
+									player.sendMessage(ChatColor.RED + "You are already on the list!");
+									return false;
+								}
+							}
+							
 							joined.add(player);
 							player.sendMessage(ChatColor.LIGHT_PURPLE + "You have been added to the game!");
 							player.sendMessage(ChatColor.LIGHT_PURPLE + "Players ready: " + String.valueOf(joined.size()));
@@ -117,16 +135,14 @@ private Map<Player, String> jugMap = new HashMap<>();
 			jugMap.put(player, "The Jugg");
 			player.sendMessage("You are thicc af");
 			
-			PlayerInventory inventory = player.getInventory();
-			if (inventory.firstEmpty() == -1) {
-				//inventory is full
-				player.sendMessage(ChatColor.ITALIC + "You try to put on the jugg armor, but apparently it doesnt fit over you current armor!");
-			}
-			inventory.clear();
-			inventory.setArmorContents(juggItems());		//gives player the armor
+			
+			player.getInventory().clear();
+			player.getInventory().setArmorContents(juggItems());		//gives player the armor
+			player.getWorld().strikeLightning(player.getLocation());	//strikes jugg with lightning for drama
 		}
 		
-		public static void removeJuggernaut(Player player) {		// Transform player back into a normie
+		public void removeJuggernaut(Player player) {		// Transform player back into a normie
+			jugMap.remove(player, "The Jugg");
 			player.sendMessage("You lose your chiseled jawline, normie");
 			player.getInventory().clear();
 		}
@@ -214,15 +230,48 @@ private Map<Player, String> jugMap = new HashMap<>();
 			return items.toArray(new ItemStack[items.size()]);
 		}
 		
+		public ItemStack[] attackerItems() {
+			List<ItemStack> items = new ArrayList<ItemStack>();		//the items the attackers will get
+			List<String> lore = new ArrayList<String>();
+			
+			ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+			ItemMeta swordMeta = sword.getItemMeta();
+			swordMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Attack the Jugg!");
+			lore.clear();
+			lore.add("");
+			lore.add(ChatColor.GOLD + "" + ChatColor.ITALIC + "Why are you reading this? Go attack the jugg!");
+			swordMeta.setLore(lore);
+			swordMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			swordMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+			swordMeta.setUnbreakable(true);
+			sword.setItemMeta(swordMeta);
+			
+			items.add(sword);
+			
+			ItemStack potion = new ItemStack(Material.SPLASH_POTION, 1);
+			PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
+			potionMeta.setBasePotionData(new PotionData(PotionType.WEAKNESS));
+			potion.setItemMeta(potionMeta);
+			
+			items.add(potion);
+			
+			return items.toArray(new ItemStack[items.size()]);
+		}
+		
 		@EventHandler
 		public void onDeath(PlayerDeathEvent e) {
 			
+			Player player = e.getEntity();
 			
 			if(e.getEntity().getKiller() == null) {
-				return;	//player was killed by mob/environment, skip changing the Jugg
+				if (jugMap.get(player) == "The Jugg") {
+					int n = createRandom(joined.size());	//the jugg was killed by the environment, picks random player to be the jugg
+					Player theJugg = joined.get(n);
+					createJuggernaut(theJugg);
+					return;
+				}
+				return;	//player was killed by mob/environment and isn't the jugg so nothing special happens
 			}
-						
-			Player player = e.getEntity();		//player was killed by another player (killer)
 			Player killer = player.getKiller();
 			
 			if (jugMap.get(player) == "The Jugg") {
@@ -231,9 +280,22 @@ private Map<Player, String> jugMap = new HashMap<>();
 				createJuggernaut(killer);
 				jugMap.remove(player, "The Jugg");
 				removeJuggernaut(player);
+				return;
 			}
 			else if (jugMap.get(killer) == "The Jugg") {
 				Bukkit.broadcastMessage(ChatColor.RED + "The Jugg Has Killed!");
+				return;
+			}
+		}
+		
+		@EventHandler
+		public void onRespawn(PlayerRespawnEvent e) {
+			Player player = e.getPlayer();
+			for (int i = 0; i < joined.size(); i++) {
+				if (joined.get(i) == player) {		//if the player is on the list of people playing jugg
+					player.getInventory().setContents(attackerItems());	//give them attacker items
+					return;	
+				}
 			}
 		}
 }
